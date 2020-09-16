@@ -32,10 +32,11 @@ import torch
 import torch.utils.data
 import sys
 from scipy.io.wavfile import read
+from mozilla_tts_audio import AudioProcessor
 
 # We're using the audio processing from TacoTron2 to make sure it matches
-sys.path.insert(0, 'tacotron2')
-from tacotron2.layers import TacotronSTFT
+# sys.path.insert(0, 'tacotron2')
+# from tacotron2.layers import TacotronSTFT
 
 MAX_WAV_VALUE = 32768.0
 
@@ -62,26 +63,17 @@ class Mel2Samp(torch.utils.data.Dataset):
     This is the main class that calculates the spectrogram and returns the
     spectrogram, audio pair.
     """
-    def __init__(self, training_files, segment_length, filter_length,
-                 hop_length, win_length, sampling_rate, mel_fmin, mel_fmax):
+    def __init__(self, training_files, segment_length, audio_config):
         self.audio_files = files_to_list(training_files)
         random.seed(1234)
         random.shuffle(self.audio_files)
-        self.stft = TacotronSTFT(filter_length=filter_length,
-                                 hop_length=hop_length,
-                                 win_length=win_length,
-                                 sampling_rate=sampling_rate,
-                                 mel_fmin=mel_fmin, mel_fmax=mel_fmax)
+        self.ap = AudioProcessor(**audio_config)
         self.segment_length = segment_length
-        self.sampling_rate = sampling_rate
+        self.sampling_rate = audio_config.audio['sample_rate']
 
     def get_mel(self, audio):
-        audio_norm = audio / MAX_WAV_VALUE
-        audio_norm = audio_norm.unsqueeze(0)
-        audio_norm = torch.autograd.Variable(audio_norm, requires_grad=False)
-        melspec = self.stft.mel_spectrogram(audio_norm)
-        melspec = torch.squeeze(melspec, 0)
-        return melspec
+        melspec = self.ap.melspectrogram(audio.detach().cpu().numpy())
+        return torch.from_numpy(melspec).float()
 
     def __getitem__(self, index):
         # Read audio
