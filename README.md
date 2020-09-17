@@ -31,7 +31,7 @@ Visit our [website] for audio samples.
 
 2. Install requirements `pip3 install -r requirements.txt`
 
-3. Install [Apex]
+3. Install [Apex] `conda install -c conda-forge nvidia-apex`
 
 
 ## Generate audio with our pre-existing model
