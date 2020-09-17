@@ -69,7 +69,7 @@ class Mel2Samp(torch.utils.data.Dataset):
         random.shuffle(self.audio_files)
         self.ap = AudioProcessor(**audio_config)
         self.segment_length = segment_length
-        self.sampling_rate = audio_config.audio['sample_rate']
+        self.sampling_rate = audio_config['sample_rate']
 
     def get_mel(self, audio):
         melspec = self.ap.melspectrogram(audio.detach().cpu().numpy())
